@@ -8,12 +8,14 @@ import {
   Link as LinkIcon,
   Loader2,
   Plus,
+  Trash2,
   Wifi,
   WifiOff,
 } from "lucide-vue-next";
 import { firebaseConfigWarning, hasFirebaseConfig } from "./services/firebase";
 import {
   createJobListing,
+  deleteJobListing,
   isValidHttpUrl,
   scrapeJobLink,
   updateApplicationStatus,
@@ -30,6 +32,7 @@ const listings = ref([]);
 const connectionError = ref("");
 const toast = ref(null);
 const updatingIds = ref(new Set());
+const deletingIds = ref(new Set());
 const failedToastIds = ref(new Set());
 let unsubscribeListings = null;
 let toastTimer = null;
@@ -102,6 +105,26 @@ async function toggleStatus(job) {
     const nextSet = new Set(updatingIds.value);
     nextSet.delete(job.id);
     updatingIds.value = nextSet;
+  }
+}
+
+async function removeJob(job) {
+  const confirmed = window.confirm("Hapus lowongan ini dari daftar?");
+  if (!confirmed) {
+    return;
+  }
+
+  deletingIds.value = new Set(deletingIds.value).add(job.id);
+
+  try {
+    await deleteJobListing(job.id);
+    showToast("Lowongan berhasil dihapus.", "success");
+  } catch {
+    showToast("Gagal menghapus lowongan.");
+  } finally {
+    const nextSet = new Set(deletingIds.value);
+    nextSet.delete(job.id);
+    deletingIds.value = nextSet;
   }
 }
 
@@ -265,11 +288,23 @@ onUnmounted(() => {
               class="toggle-button"
               :class="{ active: job.statusSudahLamar }"
               type="button"
-              :disabled="updatingIds.has(job.id)"
+              :disabled="updatingIds.has(job.id) || deletingIds.has(job.id)"
               @click="toggleStatus(job)"
             >
               <span class="toggle-track"><span class="toggle-thumb"></span></span>
               {{ job.statusSudahLamar ? "Sudah Melamar" : "Belum Melamar" }}
+            </button>
+
+            <button
+              class="delete-button"
+              type="button"
+              title="Hapus lowongan"
+              :disabled="deletingIds.has(job.id)"
+              @click="removeJob(job)"
+            >
+              <Loader2 v-if="deletingIds.has(job.id)" class="spin" :size="17" />
+              <Trash2 v-else :size="17" />
+              <span>Hapus</span>
             </button>
           </article>
         </div>

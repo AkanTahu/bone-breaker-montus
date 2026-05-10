@@ -237,7 +237,7 @@ input {
 
 .job-item {
   display: grid;
-  grid-template-columns: 180px minmax(0, 1fr) auto auto;
+  grid-template-columns: 150px minmax(0, 1fr) auto auto auto;
   gap: 14px;
   align-items: center;
   padding: 18px;
@@ -303,7 +303,8 @@ input {
 }
 
 .open-link,
-.toggle-button {
+.toggle-button,
+.delete-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -364,6 +365,18 @@ input {
 
 .toggle-button.active .toggle-thumb {
   transform: translateX(18px);
+}
+
+.delete-button {
+  padding: 0 12px;
+  border: 1px solid #f0b8b2;
+  color: #b42318;
+  background: #fff7f6;
+}
+
+.delete-button:hover:not(:disabled) {
+  border-color: #df7c73;
+  background: #fee4df;
 }
 
 .center-state,
@@ -440,7 +453,8 @@ input {
   }
 
   .open-link,
-  .toggle-button {
+  .toggle-button,
+  .delete-button {
     width: 100%;
   }
 }

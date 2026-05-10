@@ -1,6 +1,7 @@
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   limit,
   onSnapshot,
@@ -59,6 +60,10 @@ export function updateApplicationStatus(jobId, statusSudahLamar) {
   return updateDoc(doc(db, COLLECTION_NAME, jobId), {
     statusSudahLamar,
   });
+}
+
+export function deleteJobListing(jobId) {
+  return deleteDoc(doc(db, COLLECTION_NAME, jobId));
 }
 
 export function updateScrapingResult(jobId, result) {
