@@ -11,9 +11,9 @@ Frontend dan endpoint scraping di-deploy ke Vercel. Firebase tetap dipakai untuk
    npm install
    ```
 
-2. Salin `.env.example` menjadi `.env`, lalu isi konfigurasi Firebase web app:
+2. Salin `firebaseconfig.example.json` menjadi `firebaseconfig.json`, lalu isi konfigurasi Firebase web app:
    ```bash
-   cp .env.example .env
+   cp firebaseconfig.example.json firebaseconfig.json
    ```
 
 3. Deploy Firestore rules:
@@ -38,13 +38,7 @@ Frontend dan endpoint scraping di-deploy ke Vercel. Firebase tetap dipakai untuk
 
 1. Push project ke GitHub.
 2. Import repository di Vercel.
-3. Tambahkan Environment Variables dari `.env.example` ke Vercel:
-   - `VITE_FIREBASE_API_KEY`
-   - `VITE_FIREBASE_AUTH_DOMAIN`
-   - `VITE_FIREBASE_PROJECT_ID`
-   - `VITE_FIREBASE_STORAGE_BUCKET`
-   - `VITE_FIREBASE_MESSAGING_SENDER_ID`
-   - `VITE_FIREBASE_APP_ID`
+3. Pastikan `firebaseconfig.json` sudah ikut repository atau tersedia di project sebelum deploy.
 4. Pastikan setting Vercel:
    - Framework Preset: `Vite`
    - Build Command: `npm run build`
