@@ -50,6 +50,9 @@ export function createJobListing(link) {
     namaPerusahaan: "",
     namaPosisi: "",
     statusSudahLamar: false,
+    tertarik: true,
+    kategori: "Others",
+    notes: [],
     createdAt: serverTimestamp(),
     scrapingStatus: "pending",
     scrapingSelesaiAt: null,
@@ -59,6 +62,24 @@ export function createJobListing(link) {
 export function updateApplicationStatus(jobId, statusSudahLamar) {
   return updateDoc(doc(db, COLLECTION_NAME, jobId), {
     statusSudahLamar,
+  });
+}
+
+export function updateInterestStatus(jobId, tertarik) {
+  return updateDoc(doc(db, COLLECTION_NAME, jobId), {
+    tertarik,
+  });
+}
+
+export function updateJobCategory(jobId, kategori) {
+  return updateDoc(doc(db, COLLECTION_NAME, jobId), {
+    kategori,
+  });
+}
+
+export function updateJobNotes(jobId, notes) {
+  return updateDoc(doc(db, COLLECTION_NAME, jobId), {
+    notes,
   });
 }
 

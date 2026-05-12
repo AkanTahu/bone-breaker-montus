@@ -5,6 +5,8 @@ import {
   Check,
   CircleAlert,
   ExternalLink,
+  Frown,
+  Heart,
   Link as LinkIcon,
   Loader2,
   Plus,
@@ -19,6 +21,9 @@ import {
   isValidHttpUrl,
   scrapeJobLink,
   updateApplicationStatus,
+  updateInterestStatus,
+  updateJobCategory,
+  updateJobNotes,
   updateScrapingResult,
   watchJobListings,
 } from "./services/jobListings";
@@ -32,10 +37,17 @@ const listings = ref([]);
 const connectionError = ref("");
 const toast = ref(null);
 const updatingIds = ref(new Set());
+const categoryUpdatingIds = ref(new Set());
+const interestUpdatingIds = ref(new Set());
 const deletingIds = ref(new Set());
+const noteInputIds = ref(new Set());
+const noteSavingIds = ref(new Set());
+const noteDrafts = ref({});
 const failedToastIds = ref(new Set());
 let unsubscribeListings = null;
 let toastTimer = null;
+
+const jobCategories = ["Staff Admin", "IT", "MT", "Purchasing", "Logistic", "Others"];
 
 const stats = computed(() => {
   const total = listings.value.length;
@@ -98,6 +110,7 @@ async function toggleStatus(job) {
 
   try {
     await updateApplicationStatus(job.id, nextValue);
+    showToast("Perubahan sudah diproses.", "success");
   } catch {
     listings.value = previousListings;
     showToast("Gagal menyimpan status lamaran.");
@@ -105,6 +118,96 @@ async function toggleStatus(job) {
     const nextSet = new Set(updatingIds.value);
     nextSet.delete(job.id);
     updatingIds.value = nextSet;
+  }
+}
+
+async function changeCategory(job, kategori) {
+  const previousListings = listings.value.map((item) => ({ ...item }));
+
+  listings.value = listings.value.map((item) =>
+    item.id === job.id ? { ...item, kategori } : item,
+  );
+  categoryUpdatingIds.value = new Set(categoryUpdatingIds.value).add(job.id);
+
+  try {
+    await updateJobCategory(job.id, kategori);
+    showToast("Perubahan sudah diproses.", "success");
+  } catch {
+    listings.value = previousListings;
+    showToast("Gagal menyimpan kategori lowongan.");
+  } finally {
+    const nextSet = new Set(categoryUpdatingIds.value);
+    nextSet.delete(job.id);
+    categoryUpdatingIds.value = nextSet;
+  }
+}
+
+function isInterested(job) {
+  return job.tertarik !== false;
+}
+
+async function toggleInterest(job) {
+  const nextValue = !isInterested(job);
+  const previousListings = listings.value.map((item) => ({ ...item }));
+
+  listings.value = listings.value.map((item) =>
+    item.id === job.id ? { ...item, tertarik: nextValue } : item,
+  );
+  interestUpdatingIds.value = new Set(interestUpdatingIds.value).add(job.id);
+
+  try {
+    await updateInterestStatus(job.id, nextValue);
+    showToast("Perubahan sudah diproses.", "success");
+  } catch {
+    listings.value = previousListings;
+    showToast("Gagal menyimpan status tertarik.");
+  } finally {
+    const nextSet = new Set(interestUpdatingIds.value);
+    nextSet.delete(job.id);
+    interestUpdatingIds.value = nextSet;
+  }
+}
+
+function showNoteInput(job) {
+  noteInputIds.value = new Set(noteInputIds.value).add(job.id);
+  noteDrafts.value = {
+    ...noteDrafts.value,
+    [job.id]: noteDrafts.value[job.id] || "",
+  };
+}
+
+async function submitNote(job) {
+  const text = (noteDrafts.value[job.id] || "").trim();
+  if (!text) {
+    return;
+  }
+
+  const previousListings = listings.value.map((item) => ({ ...item }));
+  const previousNotes = Array.isArray(job.notes) ? job.notes : [];
+  const nextNote = {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    text,
+    createdAt: Date.now(),
+  };
+  const nextNotes = [...previousNotes, nextNote];
+
+  listings.value = listings.value.map((item) =>
+    item.id === job.id ? { ...item, notes: nextNotes } : item,
+  );
+  noteDrafts.value = { ...noteDrafts.value, [job.id]: "" };
+  noteSavingIds.value = new Set(noteSavingIds.value).add(job.id);
+
+  try {
+    await updateJobNotes(job.id, nextNotes);
+    showToast("Note sudah diproses.", "success");
+  } catch {
+    listings.value = previousListings;
+    noteDrafts.value = { ...noteDrafts.value, [job.id]: text };
+    showToast("Gagal menyimpan note.");
+  } finally {
+    const nextSet = new Set(noteSavingIds.value);
+    nextSet.delete(job.id);
+    noteSavingIds.value = nextSet;
   }
 }
 
@@ -265,34 +368,93 @@ onUnmounted(() => {
               <p :class="{ muted: !job.namaPerusahaan }">
                 {{ job.namaPerusahaan || "Belum diketahui" }}
               </p>
-              <span v-if="job.scrapingStatus === 'pending'" class="status-pill pending">
-                <Loader2 class="spin" :size="14" />
-                Scraping
-              </span>
-              <span v-else-if="job.scrapingStatus === 'failed'" class="status-pill failed">
-                <CircleAlert :size="14" />
-                Failed
-              </span>
-              <span v-else class="status-pill success">
-                <Check :size="14" />
-                Success
-              </span>
+              <div class="job-meta-row">
+                <span v-if="job.scrapingStatus === 'pending'" class="status-pill pending">
+                  <Loader2 class="spin" :size="14" />
+                  Scraping
+                </span>
+                <span v-else-if="job.scrapingStatus === 'failed'" class="status-pill failed">
+                  <CircleAlert :size="14" />
+                  Failed
+                </span>
+                <span v-else class="status-pill success">
+                  <Check :size="14" />
+                  Success
+                </span>
+                <button
+                  class="note-add-button"
+                  type="button"
+                  title="Tambah note"
+                  :disabled="deletingIds.has(job.id)"
+                  @click="showNoteInput(job)"
+                >
+                  <Plus :size="15" />
+                </button>
+              </div>
+              <form
+                v-if="noteInputIds.has(job.id)"
+                class="note-form"
+                @submit.prevent="submitNote(job)"
+              >
+                <input
+                  v-model="noteDrafts[job.id]"
+                  type="text"
+                  placeholder="Tulis note lalu tekan Enter"
+                  :disabled="noteSavingIds.has(job.id)"
+                />
+              </form>
+              <div v-if="job.notes?.length" class="note-list">
+                <p v-for="note in job.notes" :key="note.id || note.text" class="job-note">
+                  {{ note.text || note }}
+                </p>
+              </div>
             </div>
 
             <a class="open-link" :href="job.link" target="_blank" rel="noreferrer">
               <ExternalLink :size="17" />
-              Buka Link
             </a>
+
+            <select
+              class="category-select"
+              :value="job.kategori || 'Others'"
+              :title="`Kategori: ${job.kategori || 'Others'}`"
+              :disabled="categoryUpdatingIds.has(job.id) || deletingIds.has(job.id)"
+              @change="changeCategory(job, $event.target.value)"
+            >
+              <option v-for="category in jobCategories" :key="category" :value="category">
+                {{ category }}
+              </option>
+            </select>
 
             <button
               class="toggle-button"
               :class="{ active: job.statusSudahLamar }"
               type="button"
+              :title="job.statusSudahLamar ? 'Sudah melamar' : 'Belum melamar'"
               :disabled="updatingIds.has(job.id) || deletingIds.has(job.id)"
               @click="toggleStatus(job)"
             >
-              <span class="toggle-track"><span class="toggle-thumb"></span></span>
-              {{ job.statusSudahLamar ? "Sudah Melamar" : "Belum Melamar" }}
+              <span class="toggle-track">
+                <span class="toggle-thumb">
+                  <Check :size="12" />
+                </span>
+              </span>
+            </button>
+
+            <button
+              class="toggle-button interest-toggle"
+              :class="{ active: isInterested(job) }"
+              type="button"
+              :title="isInterested(job) ? 'Tertarik' : 'Tidak tertarik'"
+              :disabled="interestUpdatingIds.has(job.id) || deletingIds.has(job.id)"
+              @click="toggleInterest(job)"
+            >
+              <span class="toggle-track">
+                <span class="toggle-thumb">
+                  <Heart v-if="isInterested(job)" :size="12" />
+                  <Frown v-else :size="12" />
+                </span>
+              </span>
             </button>
 
             <button
@@ -304,7 +466,6 @@ onUnmounted(() => {
             >
               <Loader2 v-if="deletingIds.has(job.id)" class="spin" :size="17" />
               <Trash2 v-else :size="17" />
-              <span>Hapus</span>
             </button>
           </article>
         </div>

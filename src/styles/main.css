@@ -19,7 +19,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -28,7 +29,8 @@ button {
 }
 
 button:disabled,
-input:disabled {
+input:disabled,
+select:disabled {
   cursor: not-allowed;
   opacity: 0.72;
 }
@@ -237,7 +239,7 @@ input {
 
 .job-item {
   display: grid;
-  grid-template-columns: 150px minmax(0, 1fr) auto auto auto;
+  grid-template-columns: 150px minmax(0, 1fr) auto auto auto auto auto;
   gap: 14px;
   align-items: center;
   padding: 18px;
@@ -271,6 +273,14 @@ input {
   font-size: 0.92rem;
 }
 
+.job-meta-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
 .muted {
   color: #8b95a6 !important;
 }
@@ -280,7 +290,6 @@ input {
   align-items: center;
   gap: 6px;
   min-height: 28px;
-  margin-top: 8px;
   padding: 0 10px;
   border-radius: 999px;
   font-size: 0.78rem;
@@ -300,6 +309,57 @@ input {
 .status-pill.success {
   color: #087443;
   background: #dff7ea;
+}
+
+.note-add-button {
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid #cfd7e6;
+  border-radius: 999px;
+  color: #334155;
+  background: #ffffff;
+}
+
+.note-add-button:hover:not(:disabled) {
+  border-color: #95a4ba;
+  background: #f7f9fc;
+}
+
+.note-form {
+  width: min(440px, 100%);
+  margin-top: 9px;
+}
+
+.note-form input {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid #cfd7e6;
+  border-radius: 8px;
+  background: #fbfcff;
+}
+
+.note-form input:focus {
+  border-color: #1b6ff2;
+  box-shadow: 0 0 0 3px rgba(27, 111, 242, 0.14);
+}
+
+.note-list {
+  display: grid;
+  gap: 5px;
+  margin-top: 9px;
+}
+
+.job-note {
+  width: fit-content;
+  max-width: 100%;
+  padding: 4px 8px;
+  border-radius: 8px;
+  color: #526071 !important;
+  font-size: 0.78rem !important;
+  line-height: 1.35;
+  background: #f1f5f9;
 }
 
 .open-link,
@@ -324,8 +384,33 @@ input {
   background: #ffffff;
 }
 
+.category-select {
+  width: 108px;
+  min-height: 44px;
+  padding: 0 28px 0 10px;
+  border: 1px solid #ccd6e5;
+  border-radius: 8px;
+  outline: 0;
+  color: #243045;
+  font-size: 0.82rem;
+  font-weight: 800;
+  background:
+    linear-gradient(45deg, transparent 50%, #64748b 50%) calc(100% - 14px) 18px / 5px 5px
+      no-repeat,
+    linear-gradient(135deg, #64748b 50%, transparent 50%) calc(100% - 9px) 18px / 5px 5px
+      no-repeat,
+    #ffffff;
+  appearance: none;
+}
+
+.category-select:focus {
+  border-color: #1b6ff2;
+  box-shadow: 0 0 0 3px rgba(27, 111, 242, 0.14);
+}
+
 .toggle-button {
-  padding: 0 14px 0 10px;
+  width: 54px;
+  padding: 0;
   border: 1px solid #ccd6e5;
   color: #4b5565;
   background: #f7f9fc;
@@ -351,9 +436,12 @@ input {
   position: absolute;
   top: 3px;
   left: 3px;
+  display: inline-grid;
   width: 18px;
   height: 18px;
+  place-items: center;
   border-radius: 999px;
+  color: #788397;
   background: #ffffff;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.24);
   transition: transform 160ms ease;
@@ -365,6 +453,21 @@ input {
 
 .toggle-button.active .toggle-thumb {
   transform: translateX(18px);
+  color: #0f6d3f;
+}
+
+.interest-toggle.active {
+  border-color: #f3b2c1;
+  color: #be123c;
+  background: #fff1f4;
+}
+
+.interest-toggle.active .toggle-track {
+  background: #ec4778;
+}
+
+.interest-toggle.active .toggle-thumb {
+  color: #be123c;
 }
 
 .delete-button {
@@ -453,6 +556,7 @@ input {
   }
 
   .open-link,
+  .category-select,
   .toggle-button,
   .delete-button {
     width: 100%;
