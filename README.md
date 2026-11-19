@@ -1,3 +1,4 @@
+hhehevoibcode
 # Breaker Bone Montus
 
 Aplikasi web pribadi untuk menyimpan link lowongan kerja, mengambil nama perusahaan/posisi lewat Vercel Serverless Function, dan melacak status sudah melamar.
